@@ -83,7 +83,12 @@ class URLRequest(BaseModel):
 @app.post("/metadata")
 def get_metadata(request: URLRequest):
     try:
-        command = [
+        # Check for cookies file to bypass bot detection (Render secret path or local)
+        cookies_path = "/etc/secrets/cookies.txt"
+        if not os.path.exists(cookies_path):
+            cookies_path = "cookies.txt"
+            
+        base_cmd = [
             sys.executable,
             "-m",
             "yt_dlp",
@@ -93,8 +98,13 @@ def get_metadata(request: URLRequest):
             "--no-playlist",
             request.url
         ]
+        
+        if os.path.exists(cookies_path):
+            base_cmd.insert(3, "--cookies")
+            base_cmd.insert(4, cookies_path)
+
         with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as temp_out, tempfile.TemporaryFile(mode='w+', encoding='utf-8') as temp_err:
-            process = subprocess.run(command, stdout=temp_out, stderr=temp_err, stdin=subprocess.DEVNULL, text=True)
+            process = subprocess.run(base_cmd, stdout=temp_out, stderr=temp_err, stdin=subprocess.DEVNULL, text=True)
             temp_out.seek(0)
             stdout_data = temp_out.read()
             temp_err.seek(0)
@@ -118,6 +128,10 @@ def get_metadata(request: URLRequest):
 @app.post("/clip")
 def create_clip(request: ClipRequest, background_tasks: BackgroundTasks):
     try:
+        cookies_path = "/etc/secrets/cookies.txt"
+        if not os.path.exists(cookies_path):
+            cookies_path = "cookies.txt"
+            
         # Generate a unique filename for the temporary file
         filename = f"{uuid.uuid4()}.mp4"
         output_path = os.path.join(TEMP_DIR, filename)
@@ -133,6 +147,10 @@ def create_clip(request: ClipRequest, background_tasks: BackgroundTasks):
             "--impersonate", "chrome",
             "--extractor-args", "youtube:player_client=default,-android_sdkless",
         ]
+        
+        if os.path.exists(cookies_path):
+            command.insert(3, "--cookies")
+            command.insert(4, cookies_path)
         
         # Use explicit path for local Windows development if it exists
         local_ffmpeg = r"C:\Users\anant\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-essentials_build\bin"

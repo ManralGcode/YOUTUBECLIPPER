@@ -1,12 +1,14 @@
 # Use official Python runtime as a parent image
 FROM python:3.11-slim
 
-# Install system dependencies (ffmpeg and Node.js for yt-dlp js-runtimes)
+# Install system dependencies (ffmpeg, git, and Deno for yt-dlp js-runtimes)
 RUN apt-get update && apt-get install -y \
     ffmpeg \
-    nodejs \
     git \
-    && ln -s /usr/bin/nodejs /usr/bin/node || true \
+    curl \
+    unzip \
+    && curl -fsSL https://deno.land/x/install/install.sh | sh \
+    && ln -s /root/.deno/bin/deno /usr/local/bin/deno \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container

@@ -87,8 +87,8 @@ def get_metadata(request: URLRequest):
             sys.executable,
             "-m",
             "yt_dlp",
-            "--js-runtimes", "nodejs",
-            "--extractor-args", "youtube:player_client=ios",
+            "--js-runtimes", "node",
+            "--impersonate", "chrome",
             "--dump-json",
             "--no-playlist",
             request.url
@@ -130,8 +130,8 @@ def create_clip(request: ClipRequest, background_tasks: BackgroundTasks):
             sys.executable,
             "-m",
             "yt_dlp",
-            "--js-runtimes", "nodejs",
-            "--extractor-args", "youtube:player_client=ios",
+            "--js-runtimes", "node",
+            "--impersonate", "chrome",
         ]
         
         # Use explicit path for local Windows development if it exists

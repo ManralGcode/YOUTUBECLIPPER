@@ -55,7 +55,7 @@ export default function Home() {
         setIsFetchingMetadata(true);
         setMetadata(null); // Clear old metadata
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://youtubeclipperbackend.onrender.com";
           const response = await axios.post(`${apiUrl}/metadata`, { url: watchUrl });
           setMetadata(response.data);
         } catch (error) {
@@ -101,7 +101,7 @@ export default function Home() {
         });
       }, 500);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://youtubeclipperbackend.onrender.com";
       const response = await axios.post(`${apiUrl}/clip`, data, {
         responseType: "blob", 
         onDownloadProgress: (progressEvent) => {

@@ -88,6 +88,7 @@ def get_metadata(request: URLRequest):
             "-m",
             "yt_dlp",
             "--impersonate", "chrome",
+            "--extractor-args", "youtube:player_client=default,-android_sdkless",
             "--dump-json",
             "--no-playlist",
             request.url
@@ -130,6 +131,7 @@ def create_clip(request: ClipRequest, background_tasks: BackgroundTasks):
             "-m",
             "yt_dlp",
             "--impersonate", "chrome",
+            "--extractor-args", "youtube:player_client=default,-android_sdkless",
         ]
         
         # Use explicit path for local Windows development if it exists

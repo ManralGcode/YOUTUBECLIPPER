@@ -5,6 +5,7 @@ import uuid
 import json
 import subprocess
 import tempfile
+import shutil
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -88,20 +89,26 @@ def get_metadata(request: URLRequest):
         if not os.path.exists(cookies_path):
             cookies_path = "cookies.txt"
             
+        writable_cookies = None
+        if os.path.exists(cookies_path):
+            writable_cookies = os.path.join(tempfile.gettempdir(), "yt_cookies.txt")
+            shutil.copy2(cookies_path, writable_cookies)
+
         base_cmd = [
             sys.executable,
             "-m",
             "yt_dlp",
             "--impersonate", "chrome",
             "--extractor-args", "youtube:player_client=default,-android_sdkless",
+            "--remote-components", "ejs:github",
             "--dump-json",
             "--no-playlist",
             request.url
         ]
         
-        if os.path.exists(cookies_path):
+        if writable_cookies and os.path.exists(writable_cookies):
             base_cmd.insert(3, "--cookies")
-            base_cmd.insert(4, cookies_path)
+            base_cmd.insert(4, writable_cookies)
 
         with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as temp_out, tempfile.TemporaryFile(mode='w+', encoding='utf-8') as temp_err:
             process = subprocess.run(base_cmd, stdout=temp_out, stderr=temp_err, stdin=subprocess.DEVNULL, text=True)
@@ -132,6 +139,11 @@ def create_clip(request: ClipRequest, background_tasks: BackgroundTasks):
         if not os.path.exists(cookies_path):
             cookies_path = "cookies.txt"
             
+        writable_cookies = None
+        if os.path.exists(cookies_path):
+            writable_cookies = os.path.join(tempfile.gettempdir(), f"yt_cookies_{uuid.uuid4().hex[:8]}.txt")
+            shutil.copy2(cookies_path, writable_cookies)
+            
         # Generate a unique filename for the temporary file
         filename = f"{uuid.uuid4()}.mp4"
         output_path = os.path.join(TEMP_DIR, filename)
@@ -146,11 +158,12 @@ def create_clip(request: ClipRequest, background_tasks: BackgroundTasks):
             "yt_dlp",
             "--impersonate", "chrome",
             "--extractor-args", "youtube:player_client=default,-android_sdkless",
+            "--remote-components", "ejs:github",
         ]
         
-        if os.path.exists(cookies_path):
+        if writable_cookies and os.path.exists(writable_cookies):
             command.insert(3, "--cookies")
-            command.insert(4, cookies_path)
+            command.insert(4, writable_cookies)
         
         # Use explicit path for local Windows development if it exists
         local_ffmpeg = r"C:\Users\anant\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-essentials_build\bin"

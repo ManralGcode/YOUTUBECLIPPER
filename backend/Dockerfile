@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     nodejs \
     git \
+    && ln -s /usr/bin/nodejs /usr/bin/node || true \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container

@@ -92,13 +92,15 @@ def get_metadata(request: URLRequest):
             "--no-playlist",
             request.url
         ]
-        with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as temp_out:
-            process = subprocess.run(command, stdout=temp_out, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, text=True)
+        with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as temp_out, tempfile.TemporaryFile(mode='w+', encoding='utf-8') as temp_err:
+            process = subprocess.run(command, stdout=temp_out, stderr=temp_err, stdin=subprocess.DEVNULL, text=True)
             temp_out.seek(0)
             stdout_data = temp_out.read()
+            temp_err.seek(0)
+            stderr_data = temp_err.read()
             
         if process.returncode != 0:
-            raise HTTPException(status_code=400, detail="Could not fetch metadata. Ensure it is a valid video.")
+            raise HTTPException(status_code=400, detail=f"Could not fetch metadata. Ensure it is a valid video. Error: {stderr_data}")
         
         info = json.loads(stdout_data)
         return {

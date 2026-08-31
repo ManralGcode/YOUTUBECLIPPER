@@ -36,6 +36,7 @@ export default function Home() {
   const [progressMessage, setProgressMessage] = useState("Processing your clip...");
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
 
   const form = useForm<ClipFormValues>({
     defaultValues: {
@@ -53,18 +54,24 @@ export default function Home() {
       const pattern = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.be)\/.+$/;
       if (pattern.test(watchUrl)) {
         setIsFetchingMetadata(true);
-        setMetadata(null); // Clear old metadata
+        setMetadataError(null);
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://youtubeclipperbackend.onrender.com";
           const response = await axios.post(`${apiUrl}/metadata`, { url: watchUrl });
           setMetadata(response.data);
-        } catch (error) {
+        } catch (error: any) {
           console.error("Could not fetch metadata", error);
+          if (error.response && error.response.data && error.response.data.detail) {
+            setMetadataError(error.response.data.detail);
+          } else {
+            setMetadataError("Failed to fetch video details. Ensure the URL is valid.");
+          }
         } finally {
           setIsFetchingMetadata(false);
         }
       } else {
         setMetadata(null);
+        setMetadataError(null);
       }
     };
 
@@ -188,6 +195,11 @@ export default function Home() {
                       {...form.register("url")} 
                     />
                   </div>
+                  {metadataError && (
+                    <div className="text-red-500 text-sm mt-2 p-3 bg-red-50 rounded-xl border border-red-100 whitespace-pre-wrap">
+                      {metadataError}
+                    </div>
+                  )}
                 </div>
 
                 {/* Metadata Preview */}
